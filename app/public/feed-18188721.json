@@ -1,0 +1,559 @@
+{
+  "fixtureId": 18188721,
+  "homeTeam": "Paraguay",
+  "awayTeam": "France",
+  "finalOutcome": 2,
+  "source": "TxLINE StablePrice (demargined) 1X2 + scores \u2014 real data, replayed",
+  "frames": [
+    {
+      "minute": 0,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        13.1,
+        2.93,
+        1.72
+      ],
+      "status": "UPCOMING",
+      "stats": {
+        "poss": [
+          0,
+          0
+        ],
+        "shots": [
+          0,
+          0
+        ],
+        "sot": [
+          0,
+          0
+        ],
+        "corners": [
+          0,
+          0
+        ],
+        "cards": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "minute": 10,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        13.5,
+        2.52,
+        1.89
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          21,
+          79
+        ],
+        "shots": [
+          0,
+          0
+        ],
+        "sot": [
+          0,
+          0
+        ],
+        "corners": [
+          0,
+          0
+        ],
+        "cards": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "minute": 19,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        17.6,
+        2.28,
+        1.99
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          25,
+          75
+        ],
+        "shots": [
+          0,
+          0
+        ],
+        "sot": [
+          0,
+          0
+        ],
+        "corners": [
+          0,
+          1
+        ],
+        "cards": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "minute": 29,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        18.7,
+        1.88,
+        2.42
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          31,
+          69
+        ],
+        "shots": [
+          0,
+          2
+        ],
+        "sot": [
+          0,
+          0
+        ],
+        "corners": [
+          0,
+          4
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 38,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        20.8,
+        1.59,
+        3.09
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          35,
+          65
+        ],
+        "shots": [
+          4,
+          6
+        ],
+        "sot": [
+          0,
+          0
+        ],
+        "corners": [
+          0,
+          4
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 48,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        18.2,
+        4.81,
+        1.36
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          33,
+          67
+        ],
+        "shots": [
+          4,
+          14
+        ],
+        "sot": [
+          0,
+          1
+        ],
+        "corners": [
+          0,
+          7
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 57,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        18.6,
+        4.42,
+        1.39
+      ],
+      "status": "HT",
+      "stats": {
+        "poss": [
+          34,
+          66
+        ],
+        "shots": [
+          4,
+          16
+        ],
+        "sot": [
+          0,
+          1
+        ],
+        "corners": [
+          0,
+          7
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 67,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        18.9,
+        4.24,
+        1.41
+      ],
+      "status": "HT",
+      "stats": {
+        "poss": [
+          34,
+          66
+        ],
+        "shots": [
+          4,
+          16
+        ],
+        "sot": [
+          0,
+          1
+        ],
+        "corners": [
+          0,
+          7
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 76,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        17.0,
+        3.81,
+        1.47
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          36,
+          64
+        ],
+        "shots": [
+          4,
+          22
+        ],
+        "sot": [
+          0,
+          1
+        ],
+        "corners": [
+          1,
+          8
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 86,
+      "home": 0,
+      "away": 0,
+      "odds": [
+        17.7,
+        3.08,
+        1.61
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          36,
+          64
+        ],
+        "shots": [
+          4,
+          26
+        ],
+        "sot": [
+          0,
+          2
+        ],
+        "corners": [
+          1,
+          10
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 95,
+      "home": 0,
+      "away": 1,
+      "odds": [
+        160.0,
+        15.6,
+        1.08
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          36,
+          64
+        ],
+        "shots": [
+          4,
+          28
+        ],
+        "sot": [
+          0,
+          2
+        ],
+        "corners": [
+          1,
+          10
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 95,
+      "home": 0,
+      "away": 1,
+      "odds": [
+        240.0,
+        15.7,
+        1.07
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          36,
+          64
+        ],
+        "shots": [
+          4,
+          28
+        ],
+        "sot": [
+          0,
+          2
+        ],
+        "corners": [
+          1,
+          10
+        ],
+        "cards": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "minute": 95,
+      "home": 0,
+      "away": 1,
+      "odds": [
+        300.0,
+        20.6,
+        1.05
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          35,
+          65
+        ],
+        "shots": [
+          8,
+          30
+        ],
+        "sot": [
+          1,
+          3
+        ],
+        "corners": [
+          1,
+          10
+        ],
+        "cards": [
+          0,
+          2
+        ]
+      }
+    },
+    {
+      "minute": 95,
+      "home": 0,
+      "away": 1,
+      "odds": [
+        490.0,
+        35.9,
+        1.03
+      ],
+      "status": "LIVE",
+      "stats": {
+        "poss": [
+          35,
+          65
+        ],
+        "shots": [
+          8,
+          36
+        ],
+        "sot": [
+          1,
+          5
+        ],
+        "corners": [
+          2,
+          12
+        ],
+        "cards": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "minute": 95,
+      "home": 0,
+      "away": 1,
+      "odds": [
+        490.0,
+        35.9,
+        1.03
+      ],
+      "status": "FT",
+      "stats": {
+        "poss": [
+          35,
+          65
+        ],
+        "shots": [
+          8,
+          36
+        ],
+        "sot": [
+          1,
+          5
+        ],
+        "corners": [
+          2,
+          12
+        ],
+        "cards": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "minute": 95,
+      "home": 0,
+      "away": 1,
+      "odds": [
+        490.0,
+        35.9,
+        1.03
+      ],
+      "status": "FT",
+      "stats": {
+        "poss": [
+          35,
+          65
+        ],
+        "shots": [
+          8,
+          36
+        ],
+        "sot": [
+          1,
+          5
+        ],
+        "corners": [
+          2,
+          12
+        ],
+        "cards": [
+          0,
+          3
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "minute": 22,
+      "kind": "yellow",
+      "team": 1
+    },
+    {
+      "minute": 94,
+      "kind": "goal",
+      "team": 1
+    },
+    {
+      "minute": 95,
+      "kind": "yellow",
+      "team": 1
+    },
+    {
+      "minute": 95,
+      "kind": "yellow",
+      "team": 1
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+name: Supabase keep-alive
+
+# Pings Supabase every ~4 days so the free-tier project never hits the ~7-day idle pause.
+# Requires this project to live in a GitHub repo. Optionally set repo secrets SUPABASE_URL and
+# SUPABASE_ANON_KEY (Settings → Secrets → Actions); otherwise the script uses its baked-in defaults.
+on:
+  schedule:
+    - cron: "0 6 */4 * *" # 06:00 UTC, roughly every 4 days (max gap < 7 days)
+  workflow_dispatch: {} # lets you run it manually from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # If your repo root is the `app/` folder, change this to scripts/keepalive.mjs
+      - run: node app/scripts/keepalive.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}

@@ -1,0 +1,18 @@
+{
+  "fixture": {
+    "Ts": 1783922400000,
+    "StartTime": 1794733200000,
+    "Competition": "Friendlies",
+    "CompetitionId": 430,
+    "FixtureGroupId": 10116166,
+    "Participant1Id": 1225,
+    "Participant1": "New Zealand",
+    "Participant2Id": 1144,
+    "Participant2": "India",
+    "FixtureId": 18242839,
+    "Participant1IsHome": true,
+    "GameState": 1
+  },
+  "oddsSnap": [],
+  "scSnap": []
+}

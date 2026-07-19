@@ -1,0 +1,19 @@
+# dependencies / build output
+node_modules/
+dist/
+target/
+.anchor/
+test-ledger/
+
+# secrets - never commit
+.env
+.env.*
+!.env.example
+
+# local logs (contain RPC urls with api keys)
+*.log
+
+# runtime artifacts written by the live relay
+app/public/live-*.json
+
+.DS_Store

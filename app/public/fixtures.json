@@ -1,0 +1,481 @@
+[
+  {
+    "fixtureId": 18179763,
+    "home": "Portugal",
+    "away": "Croatia",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784506376616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.45,
+      2.4,
+      5.72
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18187298,
+    "home": "Brazil",
+    "away": "Norway",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784511776616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.52,
+      2.41,
+      5.28
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18218149,
+    "home": "Spain",
+    "away": "Belgium",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784517176616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.37,
+      2.49,
+      5.69
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18237038,
+    "home": "France",
+    "away": "Spain",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784522576616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.74,
+      3.12,
+      3.18
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18179549,
+    "home": "Colombia",
+    "away": "Ghana",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784527976616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.15,
+      2.38,
+      8.69
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18176123,
+    "home": "Australia",
+    "away": "Egypt",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784533376616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      3.74,
+      2.95,
+      2.54
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18213979,
+    "home": "Norway",
+    "away": "England",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784538776616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      4.94,
+      2.34,
+      2.7
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18172469,
+    "home": "Brazil",
+    "away": "Japan",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784544176616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.57,
+      2.22,
+      6.19
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18202783,
+    "home": "Switzerland",
+    "away": "Colombia",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784549576616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      3.66,
+      3.07,
+      2.49
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18198205,
+    "home": "Portugal",
+    "away": "Spain",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784554976616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      4.8,
+      2.3,
+      2.8
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18257865,
+    "home": "France",
+    "away": "England",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784560376616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.25,
+      2.75,
+      5.23
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18185036,
+    "home": "Canada",
+    "away": "Morocco",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784565776616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      5.82,
+      2.16,
+      2.73
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18202701,
+    "home": "Argentina",
+    "away": "Egypt",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784571176616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      1.9,
+      2.62,
+      11.1
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18193785,
+    "home": "USA",
+    "away": "Belgium",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784576576616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      3.39,
+      2.16,
+      4.11
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18257739,
+    "home": "Spain",
+    "away": "Argentina",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784581976616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      3.21,
+      2.07,
+      4.84
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18172280,
+    "home": "Netherlands",
+    "away": "Morocco",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784587376616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      3.4,
+      2.11,
+      4.3
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18179552,
+    "home": "Switzerland",
+    "away": "Algeria",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784592776616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      2.08,
+      3.4,
+      4.45
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18192996,
+    "home": "Mexico",
+    "away": "England",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784598176616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      4.21,
+      2.05,
+      3.64
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18241006,
+    "home": "England",
+    "away": "Argentina",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784603576616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      3.74,
+      2.03,
+      4.18
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18188721,
+    "home": "Paraguay",
+    "away": "France",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784608976616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      13.1,
+      2.93,
+      1.72
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18222446,
+    "home": "Argentina",
+    "away": "Switzerland",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784614376616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      1.79,
+      3.51,
+      6.43
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18209181,
+    "home": "France",
+    "away": "Morocco",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784619776616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      1.62,
+      4.22,
+      6.87
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18175918,
+    "home": "Argentina",
+    "away": "Cape Verde",
+    "competition": "World Cup",
+    "competitionId": 72,
+    "kickoff": 1784625176616,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": [
+      1.17,
+      9.81,
+      23.7
+    ],
+    "finalOutcome": null,
+    "category": "simulation",
+    "featured": true,
+    "simulated": true
+  },
+  {
+    "fixtureId": 18182864,
+    "home": "Australia",
+    "away": "Brazil",
+    "competition": "Friendlies",
+    "competitionId": 430,
+    "kickoff": 1790694000000,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": null,
+    "finalOutcome": null,
+    "category": "real",
+    "featured": false
+  },
+  {
+    "fixtureId": 18263783,
+    "home": "Liechtenstein",
+    "away": "Gibraltar",
+    "competition": "Friendlies",
+    "competitionId": 430,
+    "kickoff": 1791225900000,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": null,
+    "finalOutcome": null,
+    "category": "real",
+    "featured": false
+  },
+  {
+    "fixtureId": 18242839,
+    "home": "New Zealand",
+    "away": "India",
+    "competition": "Friendlies",
+    "competitionId": 430,
+    "kickoff": 1794733200000,
+    "status": "UPCOMING",
+    "score": null,
+    "odds": null,
+    "finalOutcome": null,
+    "category": "real",
+    "featured": false
+  }
+]
