@@ -22,6 +22,7 @@ import { WinProbChart } from "./WinProbChart";
 import { LiveProbChart } from "./LiveProbChart";
 import NumberFlow from "@number-flow/react";
 import { recordPrediction, getHistory, type Prediction } from "../lib/history";
+import { scrollToEl } from "../lib/smoothScroll";
 import { useSolPrice } from "../lib/solPrice";
 import { useLiveMatch } from "../lib/liveFeed";
 import { toast } from "../lib/toast";
@@ -997,7 +998,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
         <button
           type="button"
           aria-label="Go to settlement"
-          onClick={() => settleCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
+          onClick={() => scrollToEl(settleCardRef.current)}
           className="animate-settle-pop fixed bottom-5 left-1/2 z-[70] -translate-x-1/2"
         >
           <span className="settle-glow inline-flex items-center gap-2 rounded-full bg-success px-5 py-3 font-display text-sm font-bold text-success-foreground">

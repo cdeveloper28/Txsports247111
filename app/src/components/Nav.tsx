@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { BaseWalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { ArrowRight, ArrowSquareOut, List, Flask, Drop } from "@phosphor-icons/react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { BaseWalletMultiButton, useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { ArrowRight, ArrowSquareOut, List, Flask, Drop, Wallet, Copy, CheckCircle, SignOut, ArrowsLeftRight } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
@@ -53,6 +54,52 @@ function DevnetTag() {
         >
           <Drop weight="fill" size={16} /> Get test tokens <ArrowSquareOut weight="bold" size={14} />
         </a>
+      </Modal>
+    </>
+  );
+}
+
+/** Mobile-only wallet control: one icon button. Outline wallet = disconnected (opens the wallet
+ *  picker); filled wallet + green dot = connected (opens address / copy / change / disconnect). */
+function MobileWallet() {
+  const { publicKey, connected, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const addr = publicKey?.toBase58() ?? "";
+
+  if (!connected) {
+    return (
+      <button aria-label="Connect wallet" onClick={() => setVisible(true)}
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border text-foreground transition-colors hover:bg-secondary sm:hidden">
+        <Wallet weight="bold" size={18} />
+      </button>
+    );
+  }
+  const item = "flex w-full items-center gap-2.5 rounded-xl border border-border px-4 py-3 text-sm font-semibold transition-colors hover:bg-secondary";
+  return (
+    <>
+      <button aria-label="Wallet options" onClick={() => setOpen(true)}
+        className="relative grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-primary/50 bg-primary/10 text-primary transition-colors sm:hidden">
+        <Wallet weight="fill" size={18} />
+        <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-background bg-success" aria-hidden />
+      </button>
+      <Modal open={open} onClose={() => { setOpen(false); setCopied(false); }} title="Wallet">
+        <div className="rounded-xl border border-border bg-secondary/50 px-4 py-3 text-center font-mono text-sm">
+          {addr.slice(0, 6)}…{addr.slice(-6)}
+        </div>
+        <div className="mt-4 flex flex-col gap-2">
+          <button className={item} onClick={async () => { try { await navigator.clipboard.writeText(addr); setCopied(true); } catch { /* clipboard denied */ } }}>
+            {copied ? <CheckCircle weight="fill" size={16} className="text-success" /> : <Copy size={16} />}
+            {copied ? "Copied" : "Copy address"}
+          </button>
+          <button className={item} onClick={() => { setOpen(false); setVisible(true); }}>
+            <ArrowsLeftRight size={16} /> Change wallet
+          </button>
+          <button className={item + " text-danger"} onClick={async () => { setOpen(false); try { await disconnect(); } catch { /* already gone */ } }}>
+            <SignOut size={16} /> Disconnect
+          </button>
+        </div>
       </Modal>
     </>
   );
@@ -116,11 +163,11 @@ export function Nav({ page = "landing", wide = false }: { page?: Page; wide?: bo
            
           </div>
         </a>
-        <div className="ml-3 flex items-center gap-3 sm:gap-5">
+        <div className="ml-3 flex items-center gap-2 sm:gap-5">
           <DevnetTag />
           {page === "landing" ? (
             <>
-              {/* Marketing nav: no app links, no wallet - the funnel is "Predict now" */}
+              {/* Marketing nav: no app links, no wallet on desktop - the funnel is "Predict now" */}
               <a href="#how" className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:block">How it works</a>
               <Button size="sm" asChild className="hidden sm:inline-flex">
                 <a href="#/app">Predict now <ArrowRight weight="bold" size={15} /></a>
@@ -130,9 +177,10 @@ export function Nav({ page = "landing", wide = false }: { page?: Page; wide?: bo
             <>
               <NavLink href="#/app" active={page === "market"}>Markets</NavLink>
               <NavLink href="#/history" active={page === "history"}>History</NavLink>
-              <BaseWalletMultiButton labels={WALLET_LABELS} />
+              <div className="hidden sm:block"><BaseWalletMultiButton labels={WALLET_LABELS} /></div>
             </>
           )}
+          <MobileWallet />
           <MobileMenu page={page} />
         </div>
       </div>

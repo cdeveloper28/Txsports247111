@@ -16,3 +16,11 @@ export function scrollToTop() {
   if (lenis) lenis.scrollTo(0, { immediate: true });
   else window.scrollTo(0, 0);
 }
+
+/** Glide to an element. Native scrollIntoView jumps while Lenis owns the scroll, so route
+ *  through Lenis for the animated transition; `offset` keeps it clear of the sticky nav. */
+export function scrollToEl(el: HTMLElement | null, offset = -96) {
+  if (!el) return;
+  if (lenis) lenis.scrollTo(el, { offset, duration: 1.1 });
+  else el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
