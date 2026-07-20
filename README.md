@@ -10,7 +10,7 @@ Made by cdev28. Portfolio: [cdev28.com](https://cdev28.com)
 
 Two trust problems sit on top of sports betting.
 
-1. Bookmaker trust. Punters (very acutely in markets like Nigeria) do not fully trust that a bookmaker will pay out fairly, or at all. The house sets the odds, takes a margin, and controls settlement.
+1. Bookmaker trust. Punters (very acutely in recent times given they have full control of funds and outcome) do not fully trust that a bookmaker will pay out fairly, or at all. The house sets the odds, takes a margin, and controls settlement.
 2. Oracle trust. Every on chain prediction market still depends on a trusted resolver (a multisig or an optimistic oracle) to decide who won. That resolver is the recurring attack surface and dispute source.
 
 Txsports removes both. Bettors pool native SOL on an outcome. The pool is settled only by a TxLINE Merkle proof of the finalised score, verified on chain by the TxODDS oracle program itself. There is no house edge (parimutuel winners split the whole pool), no trusted resolver, and the settlement contract has no admin key and no void or cancel instruction.
