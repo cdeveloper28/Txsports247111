@@ -440,9 +440,16 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
 
   const hasBet = !!myStakes && myStakes.some((x) => x > 0);
   // The on-chain position can be invisible to this page (market layout changed, or a slow RPC)
-  // while the wallet's ledger still records a live bet here - accept either so a returning
-  // bettor is never locked out of kicking off their match.
-  const hasBetHere = hasBet || railRows.some((r) => r.kind === "bet" && r.fixtureId === fixtureId);
+  // while the wallet's ledger still records a live bet here. The ledger is only a FALLBACK for
+  // when the position is unknown (myStakes === null): when the account is readable it is the
+  // truth, and the ledger must net cancels against bets or a cancelled bet re-arms Kick off.
+  const ledgerNet = railRows.reduce(
+    (s, r) => (r.fixtureId === fixtureId
+      ? s + (r.kind === "bet" ? (r.amount ?? 0) : r.kind === "cancel" ? -(r.amount ?? 0) : 0)
+      : s),
+    0
+  );
+  const hasBetHere = hasBet || (myStakes === null && ledgerNet > 1e-9);
   const cp = claimPayout();
   const canClaim = !!market?.resolved && !claimed && !!myStakes && (cp.void ? myStakes.some((x) => x > 0) : (!!market && myStakes[market.outcome] > 0));
   const lostBet = !!market?.resolved && !claimed && !!myStakes && myStakes.some((x) => x > 0) && !canClaim;
