@@ -49,8 +49,8 @@ export function Hero() {
 
           <div className="max-w-md lg:justify-self-end lg:pb-3 lg:text-right">
             <p className="text-pretty text-[15px] leading-relaxed text-muted-foreground">
-              Stake native SOL on match outcomes. At full time, <b className="text-foreground">anyone</b> settles
-              the market with a TxLINE Merkle proof of the real score. No bookmaker, no oracle, no admin key.
+              Stake SOL on match outcomes. At full time, <b className="text-foreground">anyone</b> settles
+              the market with a TxLINE Merkle proof of the real score. No centralized odds, no oracles, no admin control.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3 lg:justify-end">
               <Button size="lg" asChild>
