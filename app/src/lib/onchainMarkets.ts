@@ -70,9 +70,14 @@ async function load(conn: Connection): Promise<MarketStats> {
 
   const byFixture: Record<number, MarketRow> = {};
   const byMarket: Record<string, MarketRow> = {};
-  let totalStaked = 0, activeMarkets = 0, settled = 0, biggest: MarketRow | null = null;
+  const fixtureOpen: Record<number, boolean> = {};
+  let totalStaked = 0, settled = 0, biggest: MarketRow | null = null;
   const now = Date.now() / 1000;
+  const shared = PublicKey.default.toBase58();
 
+  // Product model: real fixtures share ONE global market (host = default pubkey); every
+  // simulation bettor gets a per-wallet sandbox market (host = their wallet). ALL of it is real
+  // staked SOL, so the pulse and the per-card crowd bars aggregate every market of a fixture.
   for (const { pubkey, account } of markets) {
     let m: any;
     try { m = coder.accounts.decode("Market", account.data as Buffer); } catch { continue; }
@@ -84,7 +89,7 @@ async function load(conn: Connection): Promise<MarketStats> {
     const row: MarketRow = {
       fixtureId: num(m.fixtureId ?? m.fixture_id),
       pubkey: pk,
-      host: (m.host as PublicKey)?.toBase58?.() ?? PublicKey.default.toBase58(),
+      host: (m.host as PublicKey)?.toBase58?.() ?? shared,
       pools, total,
       bettors: bettorsByMarket.get(pk) ?? 0,
       resolved,
@@ -92,21 +97,30 @@ async function load(conn: Connection): Promise<MarketStats> {
       closesAt,
     };
     byMarket[pk] = row;
-    // Product model: ONE shared market per fixture (host = default pubkey). A few legacy sandbox
-    // markets exist on-chain from testing - keep them out of the fixture view and platform stats
-    // so crowd bars / pulse reflect only the real shared pools.
-    const isShared = row.host === PublicKey.default.toBase58();
-    if (!isShared) continue;
-    byFixture[row.fixtureId] = row;
     totalStaked += total;
     if (resolved) settled++;
-    else if (closesAt > now) activeMarkets++;
+    else if (closesAt > now) fixtureOpen[row.fixtureId] = true;
+
+    const agg = byFixture[row.fixtureId];
+    if (!agg) {
+      byFixture[row.fixtureId] = { ...row, pools: [...row.pools] as [number, number, number] };
+    } else {
+      agg.pools = [agg.pools[0] + row.pools[0], agg.pools[1] + row.pools[1], agg.pools[2] + row.pools[2]];
+      agg.total += row.total;
+      agg.bettors += row.bettors;
+      // The shared market (when one exists) is the fixture's canonical identity.
+      if (row.host === shared) {
+        agg.pubkey = row.pubkey; agg.host = row.host;
+        agg.resolved = row.resolved; agg.winningOutcome = row.winningOutcome; agg.closesAt = row.closesAt;
+      }
+    }
   }
+  const activeMarkets = Object.values(fixtureOpen).filter(Boolean).length;
   for (const agg of Object.values(byFixture)) {
     if (agg.total > 0 && (!biggest || agg.total > biggest.total)) biggest = agg;
   }
 
-  // Persist market snapshots (durable mirror for Market Pulse / analytics).
+  // Persist fixture aggregates (durable mirror for Market Pulse / analytics).
   const rows = Object.values(byFixture);
   if (rows.length && Date.now() - lastMarketStore > 60_000) {
     lastMarketStore = Date.now();
@@ -116,15 +130,19 @@ async function load(conn: Connection): Promise<MarketStats> {
     })));
   }
 
-  const sharedRows = Object.values(byFixture);
-  // Count only the live shared markets (excludes legacy/orphaned accounts).
+  // Every position whose market decoded counts as a bet; owners de-duplicate platform-wide.
   const uniqueOwners = new Set<string>();
-  for (const r of sharedRows) for (const o of ownersByMarket.get(r.pubkey) ?? []) uniqueOwners.add(o);
+  let totalBets = 0;
+  for (const [mkt, owners] of ownersByMarket) {
+    if (!byMarket[mkt]) continue;
+    totalBets += owners.length;
+    for (const o of owners) uniqueOwners.add(o);
+  }
   return {
     byFixture, byMarket, totalStaked, activeMarkets, settled,
     bettors: uniqueOwners.size,
-    totalBets: sharedRows.reduce((s, r) => s + r.bettors, 0),
-    marketCount: sharedRows.length, biggest,
+    totalBets,
+    marketCount: Object.keys(byMarket).length, biggest,
   };
 }
 
