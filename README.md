@@ -5,7 +5,9 @@ Trustless World Cup prediction markets on Solana. Parimutuel pools settled by cr
 Powered by TxLINE and TxODDS verifiable sports data anchored on Solana.
 
 Made by cdev28. Portfolio: [cdev28.com](https://cdev28.com)
+## 🎬 Demo Video
 
+[![Watch the demo](https://img.youtube.com/vi/dtrpGzCo5ws/0.jpg)](https://youtu.be/dtrpGzCo5ws)
 ## The problem
 
 Two trust problems sit on top of sports betting.
