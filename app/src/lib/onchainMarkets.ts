@@ -3,7 +3,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { BorshCoder, utils, BN } from "@coral-xyz/anchor";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import { IDL, PROGRAM_ID, LAMPORTS_PER_SOL } from "../config";
-import { storeMarkets } from "./supabase";
+import { storeMarkets, fetchMarketsMirror, type MarketRecord } from "./supabase";
 
 // Reads live market state straight from the chain: every market's staked pools, volume and bettor
 // count, plus platform-wide totals. This is the real parimutuel money - distinct from the model
@@ -128,21 +128,71 @@ async function load(conn: Connection): Promise<MarketStats> {
   };
 }
 
-// Shared TTL cache so multiple consumers this render don't each hit the RPC.
+/** Rebuild MarketStats from the Supabase mirror - the fallback when the RPC read fails.
+ *  The mirror only ever stores shared-market rows, so every row counts toward the totals.
+ *  Unique bettors aren't in the mirror; the per-market position counts are the best stand-in. */
+function statsFromMirror(rows: MarketRecord[]): MarketStats {
+  const byFixture: Record<number, MarketRow> = {};
+  const byMarket: Record<string, MarketRow> = {};
+  let totalStaked = 0, activeMarkets = 0, settled = 0, biggest: MarketRow | null = null;
+  const now = Date.now() / 1000;
+  for (const r of rows) {
+    const row: MarketRow = {
+      fixtureId: r.fixtureId, pubkey: r.market, host: PublicKey.default.toBase58(),
+      pools: r.pools, total: r.total, bettors: r.bettors,
+      resolved: r.resolved, winningOutcome: r.winningOutcome, closesAt: r.closesAt,
+    };
+    byFixture[row.fixtureId] = row;
+    byMarket[row.pubkey] = row;
+    totalStaked += row.total;
+    if (row.resolved) settled++;
+    else if (row.closesAt > now) activeMarkets++;
+    if (row.total > 0 && (!biggest || row.total > biggest.total)) biggest = row;
+  }
+  const totalBets = rows.reduce((s, r) => s + r.bettors, 0);
+  return {
+    byFixture, byMarket, totalStaked, activeMarkets, settled,
+    bettors: totalBets, totalBets, marketCount: rows.length, biggest,
+  };
+}
+
+// Shared TTL cache so multiple consumers this render don't each hit the RPC, plus a listener
+// registry so a confirmed transaction can push fresh numbers to every subscriber at once.
 let cache: { t: number; data: MarketStats } | null = null;
 let inflight: Promise<MarketStats> | null = null;
+const listeners = new Set<() => void>();
 
-export async function getMarketStats(conn: Connection, maxAgeMs = 45_000): Promise<MarketStats> {
+/** Call after any confirmed bet/cancel/settle/claim: drops the cache and makes every
+ *  Market Pulse / crowd-bar subscriber refetch immediately instead of waiting out the poll. */
+export function invalidateMarketStats() {
+  cache = null;
+  listeners.forEach((l) => l());
+}
+
+export async function getMarketStats(conn: Connection, maxAgeMs = 15_000): Promise<MarketStats> {
   if (cache && Date.now() - cache.t < maxAgeMs) return cache.data;
   if (!inflight) {
     inflight = load(conn)
       .then((data) => { cache = { t: Date.now(), data }; inflight = null; return data; })
-      .catch((e) => { inflight = null; throw e; });
+      .catch(async (e) => {
+        inflight = null;
+        // Chain read failed (rate-limited or missing RPC). Serve the last good numbers if we
+        // have them; otherwise fall back to the Supabase mirror so the pulse never flatlines.
+        if (cache) return (cache as { t: number; data: MarketStats }).data;
+        const mirror = await fetchMarketsMirror().catch(() => []);
+        if (mirror.length) {
+          const data = statsFromMirror(mirror);
+          cache = { t: Date.now(), data };
+          return data;
+        }
+        throw e;
+      });
   }
   return inflight;
 }
 
-/** Subscribe to live market stats (polls every 20s, shares a cache across consumers). */
+/** Subscribe to live market stats (polls every 20s, shares a cache across consumers, and
+ *  refreshes instantly when invalidateMarketStats() fires after a transaction). */
 export function useMarketStats(): { stats: MarketStats; loading: boolean } {
   const { connection } = useConnection();
   const [stats, setStats] = useState<MarketStats>(cache?.data ?? EMPTY);
@@ -154,8 +204,9 @@ export function useMarketStats(): { stats: MarketStats; loading: boolean } {
         .then((d) => { if (alive) { setStats(d); setLoading(false); } })
         .catch(() => { if (alive) setLoading(false); });
     run();
-    const t = setInterval(run, 60_000);
-    return () => { alive = false; clearInterval(t); };
+    const t = setInterval(run, 20_000);
+    listeners.add(run);
+    return () => { alive = false; clearInterval(t); listeners.delete(run); };
   }, [connection]);
   return { stats, loading };
 }

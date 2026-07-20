@@ -25,6 +25,7 @@ import { recordPrediction, getHistory, type Prediction } from "../lib/history";
 import { scrollToEl } from "../lib/smoothScroll";
 import { useSolPrice } from "../lib/solPrice";
 import { useLiveMatch } from "../lib/liveFeed";
+import { invalidateMarketStats } from "../lib/onchainMarkets";
 import { toast } from "../lib/toast";
 
 const REPLAY_MS = 1300;
@@ -213,6 +214,8 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
       }
       onSuccess?.(sig);
       await refresh();
+      // Push the confirmed change into Market Pulse / crowd bars everywhere, right now.
+      invalidateMarketStats();
     } catch (e: any) {
       const msg = errMsg(e);
       say(`✗ ${msg}`);

@@ -76,6 +76,25 @@ export async function fetchRecentTrades(limit = 30): Promise<TradeRecord[]> {
   }));
 }
 
+/** Read the `markets` mirror back - the fallback when the chain RPC is unavailable. */
+export async function fetchMarketsMirror(): Promise<MarketRecord[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("markets")
+    .select("fixture_id,market,pool_home,pool_draw,pool_away,total,bettors,resolved,winning_outcome,closes_at");
+  if (error || !data) return [];
+  return data.map((r: any) => ({
+    fixtureId: Number(r.fixture_id),
+    market: r.market,
+    pools: [Number(r.pool_home), Number(r.pool_draw), Number(r.pool_away)] as [number, number, number],
+    total: Number(r.total),
+    bettors: Number(r.bettors),
+    resolved: !!r.resolved,
+    winningOutcome: Number(r.winning_outcome ?? 0),
+    closesAt: Number(r.closes_at ?? 0),
+  }));
+}
+
 /** Mirror live market snapshots into `markets` (upsert by fixture_id). */
 export async function storeMarkets(rows: MarketRecord[]): Promise<void> {
   if (!supabase || rows.length === 0) return;
