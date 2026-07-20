@@ -319,7 +319,15 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
       .accounts({ market: marketPda, dailyScoresMerkleRoots: ds, txoracleProgram: TXORACLE, payer: publicKey })
       .preInstructions([cuIx]).rpc();
   }, { kind: "settle", outcome: proof?.outcome },
-    () => toast.success("Market settled", proof ? `${proof.label} · Merkle-verified on-chain` : undefined));
+    (sig) => {
+      toast.success("Market settled", proof ? `${proof.label} · Merkle-verified on-chain` : undefined);
+      // The settler just proved their own pick lost: hand them the loss receipt right away.
+      const staked = myStakes ? myStakes[0] + myStakes[1] + myStakes[2] : 0;
+      const winnersPool = proof != null ? market?.pools?.[proof.outcome] ?? 0 : 0;
+      if (proof && staked > 0 && (myStakes?.[proof.outcome] ?? 0) <= 0 && winnersPool > 0) {
+        setReceipt({ payout: 0, staked, sig, win: false, void: false, ts: Date.now(), outcome: proof.outcome });
+      }
+    });
   };
 
   const claimPayout = useCallback(() => {
@@ -988,7 +996,17 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
               </Button>
             )}
             {claimed && <div className="mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-success"><CheckCircle weight="fill" size={16} /> Claimed</div>}
-            {lostBet && <div className="mt-3 text-center text-sm text-muted-foreground">Your pick didn't win, nothing to claim.</div>}
+            {lostBet && (
+              <button
+                onClick={() => setReceipt({
+                  payout: 0,
+                  staked: (myStakes?.[0] ?? 0) + (myStakes?.[1] ?? 0) + (myStakes?.[2] ?? 0),
+                  sig: "", win: false, void: false, ts: Date.now(), outcome: market?.outcome ?? 0,
+                })}
+                className="mt-3 w-full rounded-lg border border-border py-2.5 text-center text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground">
+                Your pick didn't win · view loss receipt
+              </button>
+            )}
 
             <p className="mt-4 text-center text-[11px] text-muted-foreground">Parimutuel · winners split the pool · no house</p>
           </Card>
@@ -1022,13 +1040,15 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
         {receipt && (
           <div className="-m-6 overflow-hidden">
             {/* header */}
-            <div className={"px-6 pb-5 pt-6 " + (receipt.win && receipt.payout > receipt.staked ? "bg-success/10" : "bg-secondary/40")}>
+            <div className={"px-6 pb-5 pt-6 " + (receipt.win && receipt.payout > receipt.staked ? "bg-success/10" : !receipt.win && !receipt.void && receipt.payout <= 0 ? "bg-danger/10" : "bg-secondary/40")}>
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success/15">
-                  {receipt.win ? <Trophy weight="fill" size={20} className="text-success" /> : <Receipt weight="fill" size={20} />}
+                <div className={"grid h-10 w-10 shrink-0 place-items-center rounded-full " + (!receipt.win && !receipt.void && receipt.payout <= 0 ? "bg-danger/15" : "bg-success/15")}>
+                  {receipt.win ? <Trophy weight="fill" size={20} className="text-success" />
+                    : !receipt.void && receipt.payout <= 0 ? <XCircle weight="fill" size={20} className="text-danger" />
+                    : <Receipt weight="fill" size={20} />}
                 </div>
                 <div className="min-w-0">
-                  <div className="font-display text-lg font-bold leading-none">{receipt.void ? "Refunded" : receipt.win ? "You won!" : "Claim settled"}</div>
+                  <div className="font-display text-lg font-bold leading-none">{receipt.void ? "Refunded" : receipt.win ? "You won!" : receipt.payout <= 0 ? "No win this time" : "Claim settled"}</div>
                   <div className="mt-1 text-[11px] text-muted-foreground">{new Date(receipt.ts).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</div>
                 </div>
                 <span className="ml-auto mr-6 inline-flex shrink-0 items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success"><CheckCircle weight="fill" size={11} /> Finalized</span>
@@ -1065,24 +1085,30 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
               <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">Match</span><span className="truncate">{homeTeam} v {awayTeam}</span></div>
               <div className="flex items-center justify-between"><span className="text-muted-foreground">Result</span><span>{OUTCOME_LABELS[receipt.outcome]} wins</span></div>
               <div className="flex items-center justify-between"><span className="text-muted-foreground">Staked</span><span className="tnum">{receipt.staked.toFixed(3)} SOL</span></div>
-              <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">Signature</span>
-                <a className="truncate text-primary hover:underline" href={`https://explorer.solana.com/tx/${receipt.sig}?cluster=devnet`} target="_blank" rel="noreferrer">{receipt.sig.slice(0, 6)}…{receipt.sig.slice(-6)}</a>
-              </div>
+              {receipt.sig && (
+                <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">Signature</span>
+                  <a className="truncate text-primary hover:underline" href={`https://explorer.solana.com/tx/${receipt.sig}?cluster=devnet`} target="_blank" rel="noreferrer">{receipt.sig.slice(0, 6)}…{receipt.sig.slice(-6)}</a>
+                </div>
+              )}
             </div>
 
             {/* faux barcode */}
             <div className="mx-6 mb-4 h-9 rounded text-foreground/70" style={{ backgroundImage: "repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px, currentColor 5px 6px, transparent 6px 10px, currentColor 10px 12px, transparent 12px 16px)" }} />
 
-            {/* actions */}
+            {/* actions - explorer/share need a transaction signature (a latecomer's loss receipt has none) */}
             <div className="flex items-center gap-2 px-6 pb-6">
-              <a href={`https://explorer.solana.com/tx/${receipt.sig}?cluster=devnet`} target="_blank" rel="noreferrer"
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
-                <ArrowSquareOut size={14} /> Explorer
-              </a>
-              <button onClick={() => shareReceipt(receipt)}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
-                <ShareNetwork size={14} /> Share
-              </button>
+              {receipt.sig && (
+                <>
+                  <a href={`https://explorer.solana.com/tx/${receipt.sig}?cluster=devnet`} target="_blank" rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
+                    <ArrowSquareOut size={14} /> Explorer
+                  </a>
+                  <button onClick={() => shareReceipt(receipt)}
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
+                    <ShareNetwork size={14} /> Share
+                  </button>
+                </>
+              )}
               <Button className="flex-1" onClick={() => setReceipt(null)}>Done</Button>
             </div>
           </div>

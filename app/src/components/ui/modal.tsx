@@ -23,8 +23,9 @@ export function Modal({
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"
         style={{ animation: "modalpop .16s ease-out" }}>
         <style>{"@keyframes modalpop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}"}</style>
+        {/* z-20 keeps the close button clickable above full-bleed content (the receipt uses -m-6) */}
         <button onClick={onClose} aria-label="Close"
-          className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground">
+          className="absolute right-4 top-4 z-20 text-muted-foreground transition-colors hover:text-foreground">
           <X size={18} />
         </button>
         {title && <div className="mb-4 pr-8 font-display text-lg font-bold">{title}</div>}
