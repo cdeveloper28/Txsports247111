@@ -1,11 +1,22 @@
 import { useState } from "react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { BaseWalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { ArrowRight, ArrowSquareOut, List, Flask, Drop } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
 
 type Page = "landing" | "market" | "history";
+
+// Short labels so the trigger fits a phone nav ("Select Wallet" overflows it).
+const WALLET_LABELS = {
+  "change-wallet": "Change wallet",
+  connecting: "Connecting…",
+  "copy-address": "Copy address",
+  copied: "Copied",
+  disconnect: "Disconnect",
+  "has-wallet": "Connect",
+  "no-wallet": "Wallet",
+} as const;
 
 const FAUCET_URL = "https://j.tools/en/tools/devnet-faucet";
 
@@ -105,7 +116,7 @@ export function Nav({ page = "landing", wide = false }: { page?: Page; wide?: bo
            
           </div>
         </a>
-        <div className="flex items-center gap-3 sm:gap-5">
+        <div className="ml-3 flex items-center gap-3 sm:gap-5">
           <DevnetTag />
           {page === "landing" ? (
             <>
@@ -119,7 +130,7 @@ export function Nav({ page = "landing", wide = false }: { page?: Page; wide?: bo
             <>
               <NavLink href="#/app" active={page === "market"}>Markets</NavLink>
               <NavLink href="#/history" active={page === "history"}>History</NavLink>
-              <WalletMultiButton />
+              <BaseWalletMultiButton labels={WALLET_LABELS} />
             </>
           )}
           <MobileMenu page={page} />
