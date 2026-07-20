@@ -45,6 +45,39 @@ const dirty = new Set<number>();
 
 const num = (v: any): number | null => (v == null || isNaN(Number(v)) ? null : Number(v));
 
+// Supabase mirror: deployed frontends (Vercel) have no local live-<id>.json, so every flush is
+// also upserted into the live_matches table via PostgREST. Credentials come from app/.env
+// (service_role key - write access; the table has no anon write policy).
+function loadSupabase(): { url: string; key: string } | null {
+  try {
+    const env = fs.readFileSync(path.join(__dirname, "..", "app", ".env"), "utf8");
+    const get = (k: string) => env.match(new RegExp(`^${k}=(.+)$`, "m"))?.[1]?.trim();
+    const url = get("VITE_SUPABASE_URL");
+    const key = get("SUPABASE_SERVICE_ROLE_KEY");
+    return url && key ? { url, key } : null;
+  } catch { return null; }
+}
+const SB = loadSupabase();
+
+async function pushSupabase(rows: LiveState[]) {
+  if (!SB || rows.length === 0) return;
+  try {
+    const res = await fetch(`${SB.url}/rest/v1/live_matches?on_conflict=fixture_id`, {
+      method: "POST",
+      headers: {
+        apikey: SB.key,
+        Authorization: `Bearer ${SB.key}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify(rows.map((s) => ({ fixture_id: s.fixtureId, data: s, updated_at: s.updatedAt }))),
+    });
+    if (!res.ok) console.warn(`[relay] supabase upsert failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
+  } catch (e: any) {
+    console.warn("[relay] supabase upsert error:", e?.message ?? e);
+  }
+}
+
 function applyStats(s: LiveState, stats: Record<string, any>) {
   for (const [k, v] of Object.entries(stats)) {
     const key = Number(k), val = num(v);
@@ -71,13 +104,16 @@ function flush() {
   // Write to public/ (vite dev) AND dist/ (vite preview serves the built snapshot - without this
   // a previewed site polls a frozen copy and the staleness guard kills the live UI after 3 min).
   const outDirs = [PUB, path.join(PUB, "..", "dist")].filter((d) => fs.existsSync(d));
+  const rows: LiveState[] = [];
   for (const id of dirty) {
     const s = state.get(id);
     if (!s) continue;
     for (const dir of outDirs) fs.writeFileSync(path.join(dir, `live-${id}.json`), JSON.stringify(s));
+    rows.push(s);
   }
-  if (dirty.size) console.log(`[relay] wrote ${[...dirty].map((i) => `live-${i}.json`).join(", ")}`);
+  if (dirty.size) console.log(`[relay] wrote ${[...dirty].map((i) => `live-${i}.json`).join(", ")}${SB ? " (+supabase)" : ""}`);
   dirty.clear();
+  void pushSupabase(rows);
 }
 setInterval(flush, WRITE_DEBOUNCE_MS);
 

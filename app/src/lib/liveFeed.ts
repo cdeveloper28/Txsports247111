@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { phaseOf, type GamePhase } from "./gamePhase";
+import { supabase } from "./supabase";
 
 // Live match data relayed from the TxODDS SSE streams by scripts/live-relay.ts into
 // /live-<fixtureId>.json. The browser polls that file (SSE auth headers can't be sent from a
@@ -41,17 +42,33 @@ export function liveMinute(m: LiveMatch): number | null {
   return Math.max(1, Math.min(mins, 130));
 }
 
-/** Poll /live-<id>.json while enabled; null when absent, unreadable, or the relay went stale. */
+/** Poll the live state while enabled; null when absent, unreadable, or the relay went stale.
+ *  Source order: the local /live-<id>.json the relay writes (dev/preview on the relay machine),
+ *  then the relay's Supabase mirror (deployed sites have no local relay files). */
 export function useLiveMatch(fixtureId: number, enabled: boolean): { live: LiveMatch | null; phase: GamePhase } {
   const [live, setLive] = useState<LiveMatch | null>(null);
   useEffect(() => {
     if (!enabled) { setLive(null); return; }
     let alive = true;
-    const load = () =>
-      fetch(`/live-${fixtureId}.json`, { cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => { if (alive) setLive(d && isFresh(d) ? d : null); })
-        .catch(() => { if (alive) setLive(null); });
+    const load = async () => {
+      try {
+        const r = await fetch(`/live-${fixtureId}.json`, { cache: "no-store" });
+        if (r.ok) {
+          const d = (await r.json()) as LiveMatch | null;
+          if (d && isFresh(d)) { if (alive) setLive(d); return; }
+        }
+      } catch { /* fall through to the mirror */ }
+      if (supabase) {
+        try {
+          const { data } = await supabase
+            .from("live_matches").select("data").eq("fixture_id", fixtureId).maybeSingle();
+          const d = (data?.data as LiveMatch | undefined) ?? null;
+          if (alive) setLive(d && isFresh(d) ? d : null);
+          return;
+        } catch { /* ignore */ }
+      }
+      if (alive) setLive(null);
+    };
     load();
     const t = setInterval(load, POLL_MS);
     return () => { alive = false; clearInterval(t); };

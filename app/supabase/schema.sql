@@ -54,6 +54,16 @@ create table if not exists public.markets (
 );
 create unique index if not exists markets_market_key on public.markets (market);
 
+-- ---------------------------------------------------------------- live_matches (TxODDS relay mirror)
+-- scripts/live-relay.ts upserts one row per REAL fixture with the full live state (score, phase,
+-- stats, 1X2 prices). Deployed frontends read this when they have no local live-<id>.json files.
+-- Writes use the service_role key only (no anon write policy), so live data can't be spoofed.
+create table if not exists public.live_matches (
+  fixture_id  bigint primary key,
+  data        jsonb  not null,   -- the LiveState blob the frontend consumes verbatim
+  updated_at  bigint not null    -- ms epoch; staleness guard lives client-side
+);
+
 -- ---------------------------------------------------------------- RLS
 alter table public.predictions enable row level security;
 alter table public.trades      enable row level security;
@@ -75,3 +85,7 @@ drop policy if exists "anon update markets" on public.markets;
 create policy "anon read markets"   on public.markets for select to anon using (true);
 create policy "anon insert markets" on public.markets for insert to anon with check (true);
 create policy "anon update markets" on public.markets for update to anon using (true) with check (true);
+
+alter table public.live_matches enable row level security;
+drop policy if exists "anon read live_matches" on public.live_matches;
+create policy "anon read live_matches" on public.live_matches for select to anon using (true);
