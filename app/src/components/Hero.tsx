@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { BetsMarquee } from "./BetsMarquee";
 import { FlipWords } from "./ui/flip-words";
 import LineRippleBackground from "./LineRippleBackground";
+import { HeroCarousel } from "./HeroCarousel";
 
 export function Hero() {
   return (
@@ -73,19 +74,11 @@ export function Hero() {
           <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent" />
         </div>
 
-        <a href="#/app" className="group relative z-10 mx-auto block max-w-[80%]">
-          {/* framed preview scaled to 80% of the column (≈20% smaller) and centered */}
-          <div className="relative overflow-hidden rounded-xl border border-border bg-[#0b0c0e] shadow-2xl transition-colors group-hover:border-primary/40">
-            {/* Full screenshot, no crop: scaled to fit the frame width and the viewport height. */}
-            <img
-              src="/shots/markets.png"
-              alt="Txsports markets - every World Cup fixture as an on-chain parimutuel pool"
-              className="mx-auto block h-auto max-h-[66vh] w-auto max-w-full object-contain"
-              loading="eager"
-            />
-            <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5" />
-          </div>
-        </a>
+        {/* Product showreel: real app screens cycling like a carousel. A touch larger on mobile
+            (max-w-[92%]) than desktop (md:max-w-[80%]), centered so the ripple reads in the margins. */}
+        <div className="relative z-10 mx-auto max-w-[92%] md:max-w-[80%]">
+          <HeroCarousel />
+        </div>
       </motion.div>
     </section>
   );
