@@ -35,8 +35,8 @@ export function Hero() {
 
           <div className="max-w-md lg:justify-self-end lg:pb-3 lg:text-right">
             <p className="text-pretty text-[15px] leading-relaxed text-muted-foreground">
-              Stake SOL on match outcomes.<b className="text-foreground">anyone</b> settles
-              the market with a TxLINE Merkle proof of the real score. No centralized odds, no oracles, no admin control.
+              Bet on match outcomes.<b className="text-foreground"></b> settle
+              the market with a TxLINE Merkle proof of the real score.<span className="font-bold text-white">Txsports doesnt decide winning.</span> No centralized odds, no oracles, no house control.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3 lg:justify-end">
               <Button size="lg" asChild>

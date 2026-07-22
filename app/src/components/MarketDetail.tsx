@@ -5,7 +5,7 @@ import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import { SystemProgram, ComputeBudgetProgram } from "@solana/web3.js";
 import {
   SealCheck, Play, Pause, ArrowClockwise, CheckCircle, Sparkle, Circle, ArrowLeft, ArrowRight, XCircle,
-  Trophy, Warning, ArrowSquareOut, Receipt, TreeStructure, ShareNetwork, ChartLineUp, Scales, SoccerBall, Broadcast,
+  Trophy, Warning, ArrowSquareOut, Receipt, TreeStructure, XLogo, ChartLineUp, Scales, SoccerBall, Broadcast,
   RocketLaunch, Flask, Lock,
 } from "@phosphor-icons/react";
 import {
@@ -29,6 +29,7 @@ import { useSolPrice } from "../lib/solPrice";
 import { useLiveMatch } from "../lib/liveFeed";
 import { invalidateMarketStats } from "../lib/onchainMarkets";
 import { toast } from "../lib/toast";
+import { xIntentUrl, marketUrl } from "../lib/share";
 
 const REPLAY_MS = 1300;
 const MAX_BET_USD = 50; // hard cap per bet, in USD; converted to SOL at the live price
@@ -413,17 +414,6 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
         .accounts({ market: marketPda, position: positionPdaFor(marketPda, publicKey), owner: publicKey }).rpc();
     }, { kind: "cancel", outcome, amount: amt },
       () => toast.info("Bet cancelled", `${amt.toFixed(3)} SOL refunded`));
-  };
-
-  const shareReceipt = async (r: { payout: number; sig: string; win: boolean }) => {
-    const url = `https://explorer.solana.com/tx/${r.sig}?cluster=devnet`;
-    const text = r.win
-      ? `I won ${r.payout.toFixed(3)} SOL predicting ${homeTeam} vs ${awayTeam} on Txsports. Trustless World Cup markets settled by on-chain proof.`
-      : `My Txsports prediction receipt for ${homeTeam} vs ${awayTeam}.`;
-    try {
-      if ((navigator as any).share) await (navigator as any).share({ title: "Txsports", text, url });
-      else { await navigator.clipboard.writeText(`${text} ${url}`); toast.success("Copied", "Receipt link copied to clipboard"); }
-    } catch { /* user dismissed the share sheet */ }
   };
 
   const total = market?.total || 0;
@@ -1241,19 +1231,27 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
             {/* faux barcode */}
             <div className="mx-6 mb-4 h-9 rounded text-foreground/70" style={{ backgroundImage: "repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px, currentColor 5px 6px, transparent 6px 10px, currentColor 10px 12px, transparent 12px 16px)" }} />
 
-            {/* actions - explorer/share need a transaction signature (a latecomer's loss receipt has none) */}
+            {/* actions - explorer needs a tx signature; Post on X only when the user won or lost
+                (not on a void refund, which is neither). */}
             <div className="flex items-center gap-2 px-6 pb-6">
               {receipt.sig && (
-                <>
-                  <a href={`https://explorer.solana.com/tx/${receipt.sig}?cluster=devnet`} target="_blank" rel="noreferrer"
-                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
-                    <ArrowSquareOut size={14} /> Explorer
-                  </a>
-                  <button onClick={() => shareReceipt(receipt)}
-                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
-                    <ShareNetwork size={14} /> Share
-                  </button>
-                </>
+                <a href={`https://explorer.solana.com/tx/${receipt.sig}?cluster=devnet`} target="_blank" rel="noreferrer"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
+                  <ArrowSquareOut size={14} /> Explorer
+                </a>
+              )}
+              {receipt.sig && !receipt.void && (
+                <a
+                  href={xIntentUrl(
+                    receipt.win
+                      ? `I won ${receipt.payout.toFixed(3)} SOL predicting ${homeTeam} vs ${awayTeam} on Txsports, a trustless on-chain prediction market settled by proof.`
+                      : `My ${homeTeam} vs ${awayTeam} prediction on Txsports settled trustlessly on-chain by proof. No oracle, no house.`,
+                    marketUrl(fixtureId)
+                  )}
+                  target="_blank" rel="noreferrer"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-secondary/60">
+                  <XLogo weight="fill" size={14} /> Post on X
+                </a>
               )}
               <Button className="flex-1" onClick={() => setReceipt(null)}>Done</Button>
             </div>
