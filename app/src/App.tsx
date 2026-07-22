@@ -4,6 +4,8 @@ import { Landing } from "./pages/Landing";
 import { MarketsPage } from "./pages/MarketsPage";
 import { MarketPage } from "./pages/MarketPage";
 import { HistoryPage } from "./pages/HistoryPage";
+import { ActivityPage } from "./pages/ActivityPage";
+import { DevelopersPage } from "./pages/DevelopersPage";
 import { initSmoothScroll, scrollToTop } from "./lib/smoothScroll";
 
 function useHashRoute() {
@@ -25,6 +27,8 @@ export default function App() {
     seg[0] === "app" && seg[1] ? <MarketPage fixtureId={Number(seg[1])} />
     : seg[0] === "app" ? <MarketsPage />
     : seg[0] === "history" ? <HistoryPage />
+    : seg[0] === "activity" ? <ActivityPage />
+    : seg[0] === "developers" ? <DevelopersPage />
     : <Landing />;
   return (
     <>

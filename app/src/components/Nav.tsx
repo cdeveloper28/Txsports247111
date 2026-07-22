@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { BaseWalletMultiButton, useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { ArrowRight, ArrowSquareOut, List, Flask, Drop, Wallet, Copy, CheckCircle, SignOut, ArrowsLeftRight } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, List, Flask, Drop, Wallet, Copy, CheckCircle, SignOut, ArrowsLeftRight, GithubLogo } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
 
-type Page = "landing" | "market" | "history";
+type Page = "landing" | "market" | "history" | "activity" | "developers";
+
+const DEV_URL = "#/developers";
 
 // Short labels so the trigger fits a phone nav ("Select Wallet" overflows it).
 const WALLET_LABELS = {
@@ -117,10 +119,17 @@ function NavLink({ href, active, children }: { href: string; active?: boolean; c
 function MobileMenu({ page }: { page: Page }) {
   // Landing is a clean marketing page: only "How it works" - app links live behind "Predict now".
   const links = page === "landing"
-    ? [{ href: "#how", label: "How it works" }, { href: "#/app", label: "Predict now" }]
+    ? [
+        { href: "#how", label: "How it works" },
+        { href: "#/activity", label: "Activity" },
+        { href: DEV_URL, label: "Developers" },
+        { href: "#/app", label: "Predict now" },
+      ]
     : [
         { href: "#/app", label: "Markets" },
+        { href: "#/activity", label: "Activity" },
         { href: "#/history", label: "History" },
+        { href: "#/developers", label: "Developers" },
       ];
   return (
     <Drawer.Root>
@@ -167,8 +176,14 @@ export function Nav({ page = "landing", wide = false }: { page?: Page; wide?: bo
           <DevnetTag />
           {page === "landing" ? (
             <>
-              {/* Marketing nav: no app links, no wallet on desktop - the funnel is "Predict now" */}
+              {/* Marketing nav: keep it lean - "How it works", the Developers page, and
+                  the "Predict now" funnel. */}
               <a href="#how" className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:block">How it works</a>
+              <a href="#/activity" className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:block">Activity</a>
+              <a href={DEV_URL}
+                className="hidden items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground sm:inline-flex">
+                <GithubLogo weight="fill" size={15} /> Developers
+              </a>
               <Button size="sm" asChild className="hidden sm:inline-flex">
                 <a href="#/app">Predict now <ArrowRight weight="bold" size={15} /></a>
               </Button>
@@ -176,7 +191,9 @@ export function Nav({ page = "landing", wide = false }: { page?: Page; wide?: bo
           ) : (
             <>
               <NavLink href="#/app" active={page === "market"}>Markets</NavLink>
+              <NavLink href="#/activity" active={page === "activity"}>Activity</NavLink>
               <NavLink href="#/history" active={page === "history"}>History</NavLink>
+              <NavLink href="#/developers" active={page === "developers"}>Developers</NavLink>
               <div className="hidden sm:block"><BaseWalletMultiButton labels={WALLET_LABELS} /></div>
             </>
           )}

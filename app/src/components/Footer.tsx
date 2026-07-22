@@ -9,6 +9,7 @@ export function Footer({ wide = false }: { wide?: boolean }) {
           Txsports. No bookmaker, no oracle, no admin key.
         </div>
         <div className="flex items-center gap-5 text-sm text-muted-foreground">
+          <a className="hover:text-foreground" href="#/developers">Developers</a>
           <a className="inline-flex items-center gap-1.5 hover:text-foreground" href="https://github.com/cdeveloper28/Txsports247111" target="_blank" rel="noreferrer">
             <GithubLogo weight="fill" size={16} /> Repo
           </a>
