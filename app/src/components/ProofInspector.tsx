@@ -25,15 +25,15 @@ const hex = (h: number[]) => {
 
 function HashPill({ node, label }: { node: ProofNode; label: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/40 px-3 py-2">
+    <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: SIB }} />
-        <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
-        <span className="rounded bg-background/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <span className="min-w-0 truncate text-[11px] font-medium text-muted-foreground">{label}</span>
+        <span className="ml-auto shrink-0 rounded bg-background/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
           {node.isRightSibling ? "right" : "left"}
         </span>
       </div>
-      <span className="text-[11px] text-foreground" style={mono}>{hex(node.hash)}</span>
+      <div className="mt-1 pl-4 text-[11px] text-foreground" style={mono}>{hex(node.hash)}</div>
     </div>
   );
 }
@@ -58,7 +58,7 @@ export function ProofInspector({ proof, onClose }: { proof: Proof; onClose: () =
   );
 
   return (
-    <Modal open onClose={onClose}
+    <Modal open onClose={onClose} size="2xl"
       title={<span className="inline-flex items-center gap-2"><TreeStructure weight="fill" size={20} className="text-success" /> Proof inspector</span>}>
       <p className="text-sm leading-relaxed text-muted-foreground">
         The winning outcome wasn't decided by us. It was <b className="text-foreground">proven</b>: the real
@@ -87,7 +87,8 @@ export function ProofInspector({ proof, onClose }: { proof: Proof; onClose: () =
           <div className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             {siblings.length} sibling hash{siblings.length === 1 ? "" : "es"} on the path
           </div>
-          <div className="space-y-1.5">
+          {/* one per row on mobile, two per row on desktop */}
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             {siblings.map((s, i) => <HashPill key={i} node={s.node} label={s.label} />)}
           </div>
         </div>
