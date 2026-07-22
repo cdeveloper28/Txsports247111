@@ -578,9 +578,9 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)_340px] xl:grid-cols-[360px_minmax(0,1fr)_360px]">
-        {/* LEFT RAIL: your bets + P&L (desktop) */}
-        <aside className="hidden space-y-4 lg:sticky lg:top-20 lg:block lg:self-start">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[300px_minmax(0,1fr)_340px] xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+        {/* LEFT RAIL: your bets + P&L (bottom of the stack on mobile, sticky rail on desktop) */}
+        <aside className="order-last space-y-4 lg:order-none lg:sticky lg:top-20 lg:self-start">
           <Card className="p-4">
             <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Your net P&amp;L</div>
             <div className={"tnum mt-0.5 font-display text-xl font-bold " + (railPnl > 0 ? "text-success" : railPnl < 0 ? "text-danger" : "")}>
@@ -630,7 +630,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
         <div className="space-y-4">
           <Card className="overflow-hidden">
             {hasReplay && (
-              <div className="space-y-4 border-b border-border p-5">
+              <div className="space-y-4 border-b border-border p-4 sm:p-5">
                 <div>
                   <MatchViz minute={f.minute} home={f.home} away={f.away} status={dispStatus} playing={playing} homeTeam={homeTeam} awayTeam={awayTeam} />
                   {!playing && (
@@ -658,17 +658,17 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
             )}
 
             {/* compact outcomes */}
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                 <Sparkle weight="fill" size={13} /> Live pool split · winners share the whole pool
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {OUTCOME_LABELS.map((lbl, i) => {
                   const isWin = winner === i;
                   const tn = i === 0 ? homeTeam : i === 2 ? awayTeam : "";
                   return (
                     <button key={i} onClick={() => setSel(i)}
-                      className={["rounded-xl border-[1.5px] p-3 text-left transition-colors",
+                      className={["rounded-xl border-[1.5px] p-2.5 text-left transition-colors sm:p-3",
                         isWin ? "border-success bg-success/5" : sel === i ? "border-primary bg-secondary" : "border-border hover:bg-secondary/50"].join(" ")}>
                       <div className="flex items-center gap-1 truncate text-[11px] font-medium text-muted-foreground">
                         {tn ? <><Flag team={tn} /> <span className="truncate">{tn}</span></> : <span>{lbl}</span>}
@@ -703,8 +703,8 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
                 const reached = ["H1", "H2", "ET1", "ET2", "PE"].filter((p) => liveMatch.phase >= MIN_PHASE[p]);
                 if (reached.length === 0) return null;
                 return (
-                  <div className="mb-4 overflow-hidden rounded-lg border border-border">
-                    <table className="w-full text-center text-sm">
+                  <div className="mb-4 overflow-x-auto rounded-lg border border-border">
+                    <table className="w-full min-w-[340px] text-center text-sm">
                       <thead>
                         <tr className="border-b border-border bg-secondary/40 text-[10px] uppercase tracking-wide text-muted-foreground">
                           <th className="px-3 py-1.5 text-left font-semibold">Goals</th>
@@ -766,7 +766,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
 
           {/* crowd vs consensus - value / edge finder */}
           {market && market.total > 0 && (
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <Scales weight="fill" size={15} /> Crowd vs consensus
               </div>
@@ -801,7 +801,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
 
           {/* settlement */}
           <div ref={settleCardRef} className="scroll-mt-24">
-          <Card className={"p-5" + (canSettleNow ? " border-success/40" : "")}>
+          <Card className={"p-4 sm:p-5" + (canSettleNow ? " border-success/40" : "")}>
             <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <SealCheck weight="fill" size={15} /> Trustless settlement
             </div>
@@ -867,7 +867,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
           </div>
 
           {/* activity */}
-          <Card className="p-5">
+          <Card className="p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activity</div>
               <a href="#/history" className="text-xs font-medium text-primary hover:underline">Your history →</a>
@@ -878,9 +878,9 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
           </Card>
         </div>
 
-        {/* RIGHT: Kalshi-style bet panel */}
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          <Card className="p-5">
+        {/* RIGHT: Kalshi-style bet panel - first thing under the scoreboard on mobile */}
+        <div className="order-first lg:order-none lg:sticky lg:top-20 lg:self-start">
+          <Card className="p-4 sm:p-5">
             <div className="mb-4 flex items-center justify-between">
               <span className="font-display text-base font-bold">Place a prediction</span>
               <span className="text-[11px] text-muted-foreground">≈ ${solPrice.toFixed(0)}/SOL</span>

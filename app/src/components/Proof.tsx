@@ -16,7 +16,7 @@ const guarantees = [
     body: "Stakes escrow in the market PDA and pay out the instant a valid proof lands. No token to hold.",
   },
   {
-    title: "All 104 fixtures",
+    title: "Fixtures",
     body: "Markets across the whole tournament, priced off TxLINE StablePrice consensus odds.",
   },
 ];
