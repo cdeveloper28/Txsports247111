@@ -82,7 +82,7 @@ const paths = [
   {
     icon: UsersThree,
     title: "Join the shared markets",
-    body: "Use the default host and your users bet into the same canonical pools as txsports.app. You inherit the existing liquidity and your stakes deepen it for everyone. Best for wallets, aggregators and betting front ends.",
+    body: "Use the default host and your users bet into the same canonical pools as txsports.fun. You inherit the existing liquidity and your stakes deepen it for everyone. Best for wallets, aggregators and betting front ends.",
   },
   {
     icon: Robot,
