@@ -1156,7 +1156,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
             </div>
 
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <Button asChild className="flex-1"><a href="#/app">Find a match to bet on <ArrowRight weight="bold" size={16} /></a></Button>
+              <Button asChild className="flex-1"><a href="#/app">Find another match to bet on <ArrowRight weight="bold" size={16} /></a></Button>
               <Button variant="outline" className="flex-1" onClick={() => setSimInfo(false)}>Got it</Button>
             </div>
           </div>
