@@ -29,11 +29,11 @@ function DevnetTag() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-400 transition-colors hover:border-amber-400/70 hover:bg-amber-500/20"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-400 transition-colors hover:border-blue-400/70 hover:bg-blue-500/20"
       >
         <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-70" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+          <span className="absolute inline-flex h-full w-full rounded-lg bg-blue-400 opacity-70" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-lg bg-blue-400" />
         </span>
         <span className="hidden sm:inline">Devnet mode</span>
         <span className="sm:hidden">Devnet</span>

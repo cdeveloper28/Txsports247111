@@ -1,9 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Browser polyfills for Buffer/global that @solana/web3.js + anchor expect.
 export default defineConfig({
   plugins: [react()],
+  server: {
+    allowedHosts: ["cautious-bat.outray.app"]
+  },
   define: {
     global: "globalThis",
     "process.env": {},

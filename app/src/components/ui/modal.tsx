@@ -2,9 +2,11 @@ import { ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "@phosphor-icons/react";
 
+const SIZES = { md: "max-w-md", lg: "max-w-lg", xl: "max-w-xl", "2xl": "max-w-2xl", "3xl": "max-w-3xl" } as const;
+
 export function Modal({
-  open, onClose, title, children,
-}: { open: boolean; onClose: () => void; title?: ReactNode; children: ReactNode }) {
+  open, onClose, title, children, size = "md",
+}: { open: boolean; onClose: () => void; title?: ReactNode; children: ReactNode; size?: keyof typeof SIZES }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     if (open) {
@@ -20,7 +22,7 @@ export function Modal({
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"
+      <div className={"relative z-10 w-full " + SIZES[size] + " rounded-2xl border border-border bg-card p-6 shadow-2xl"}
         style={{ animation: "modalpop .16s ease-out" }}>
         <style>{"@keyframes modalpop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}"}</style>
         {/* z-20 keeps the close button clickable above full-bleed content (the receipt uses -m-6) */}

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { ArrowSquareOut, Receipt, Confetti } from "@phosphor-icons/react";
+import { ArrowSquareOut, Receipt, Confetti, TreeStructure } from "@phosphor-icons/react";
 import { Flag } from "./Flag";
 import { Modal } from "./ui/modal";
+import { LazyProofInspector } from "./ProofInspector";
 import { OUTCOME_LABELS, LIQUIDITY_WALLET } from "../config";
 import { fetchRecentBets, type OnchainBet } from "../lib/onchainBets";
 import { fetchRecentTrades } from "../lib/supabase";
@@ -34,6 +35,7 @@ const Row = ({ k, v }: { k: string; v: ReactNode }) => (
 
 /** A polished, ticket-style receipt for a single on-chain bet, with a Solscan link. */
 function BetReceipt({ bet, fx, onClose }: { bet: OnchainBet; fx?: Fx; onClose: () => void }) {
+  const [inspect, setInspect] = useState(false);
   const team = flagTeam(fx, bet.outcome);
   const pick = teamFor(fx, bet.outcome);
   // Solana Explorer, not Solscan: Solscan discontinued devnet, its links 404 there.
@@ -113,11 +115,20 @@ function BetReceipt({ bet, fx, onClose }: { bet: OnchainBet; fx?: Fx; onClose: (
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-display text-sm font-bold text-primary-foreground transition hover:brightness-110">
             View transaction on Explorer <ArrowSquareOut weight="bold" size={16} />
           </a>
+          {resolved && mkt?.fixtureId != null && (
+            <button type="button" onClick={() => setInspect(true)}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-success/30 bg-success/[0.06] px-4 py-2.5 text-sm font-semibold text-success transition hover:border-success/60">
+              <TreeStructure weight="fill" size={15} /> Inspect the settlement proof
+            </button>
+          )}
           <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
             <Confetti size={12} weight="fill" /> Settled trustlessly by on-chain proof
           </div>
         </div>
       </div>
+      {inspect && mkt?.fixtureId != null && (
+        <LazyProofInspector fixtureId={mkt.fixtureId} onClose={() => setInspect(false)} />
+      )}
     </Modal>
   );
 }

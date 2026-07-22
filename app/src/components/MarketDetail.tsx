@@ -4,8 +4,9 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import { SystemProgram, ComputeBudgetProgram } from "@solana/web3.js";
 import {
-  SealCheck, Play, Pause, ArrowClockwise, CheckCircle, Sparkle, Circle, ArrowLeft, XCircle,
+  SealCheck, Play, Pause, ArrowClockwise, CheckCircle, Sparkle, Circle, ArrowLeft, ArrowRight, XCircle,
   Trophy, Warning, ArrowSquareOut, Receipt, TreeStructure, ShareNetwork, ChartLineUp, Scales, SoccerBall, Broadcast,
+  RocketLaunch, Flask, Lock,
 } from "@phosphor-icons/react";
 import {
   IDL, TXORACLE, OUTCOME_LABELS, LAMPORTS_PER_SOL,
@@ -18,6 +19,7 @@ import { Modal } from "./ui/modal";
 import { Flag } from "./Flag";
 import { Pitch } from "./Pitch";
 import { MatchViz } from "./MatchViz";
+import { ProofInspector } from "./ProofInspector";
 import { WinProbChart } from "./WinProbChart";
 import { LiveProbChart } from "./LiveProbChart";
 import NumberFlow from "@number-flow/react";
@@ -146,7 +148,22 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
   const [receipt, setReceipt] = useState<{ payout: number; staked: number; sig: string; win: boolean; void: boolean; ts: number; outcome: number } | null>(null);
+  const [inspecting, setInspecting] = useState(false);
   const [histVer, setHistVer] = useState(0);
+  const [simInfo, setSimInfo] = useState(false);
+  const simInfoShownRef = useRef<number | null>(null);
+
+  // Landing on an already-settled SIMULATION is a dead end ("Market settled") that confuses first-
+  // timers. Instead, pop a broad explainer: what sim mode is for, why it's locked (known results),
+  // and how the pool pays out. Shown once per fixture, and skipped for a bettor who came back to
+  // claim (they hold a stake) so we don't block their payout.
+  useEffect(() => {
+    const hasStake = !!myStakes && myStakes.some((s) => s > 0);
+    if (!isReal && market?.resolved && !hasStake && simInfoShownRef.current !== fixtureId) {
+      simInfoShownRef.current = fixtureId;
+      setSimInfo(true);
+    }
+  }, [isReal, market?.resolved, myStakes, fixtureId]);
   const [railRows, setRailRows] = useState<Prediction[]>([]);
   const [railFx, setRailFx] = useState<Record<number, { home: string; away: string }>>({});
   const logRef = useRef<HTMLDivElement>(null);
@@ -157,11 +174,15 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
     if (!wallet) return null;
     return new Program(IDL, new AnchorProvider(connection, wallet, { commitment: "confirmed" }));
   }, [connection, wallet]);
-  // Real events settle the ONE shared market (host = SHARED_HOST): everyone bets the same pool
-  // and it closes at kickoff. Simulations sandbox to the bettor's wallet, so every player can
-  // replay any fixture - including fixtures promoted from real after full time, whose shared
-  // market is already resolved (pointing sims there would show "Market settled" forever).
-  const host = useMemo(() => (isReal ? SHARED_HOST : publicKey ?? null), [isReal, publicKey]);
+  // EVERY market - real AND simulation - settles the ONE shared pool (host = SHARED_HOST) that the
+  // dev wallet pre-seeds on all three outcomes. Sandboxing sims to the bettor's wallet made every
+  // solo sim bet single-sided ([you, 0, 0]), so any result you didn't back left winning_pool == 0
+  // and the program voided the market and refunded you - there was no counterparty pool to pay a
+  // winner from. Sharing the seeded pool fixes that: real liquidity on all three outcomes, so wrong
+  // bets lose, right bets profit, and a void is impossible. Trade-off: a fixture promoted from real
+  // whose shared market is already resolved shows "Market settled" (it genuinely is). Stakes stuck
+  // in old per-wallet sandboxes stay recoverable via the "legacy" recovery path below.
+  const host = useMemo(() => SHARED_HOST, []);
   const marketPda = useMemo(() => (host ? marketPdaFor(fixtureId, host) : null), [fixtureId, host]);
 
   const refresh = useCallback(async () => {
@@ -352,6 +373,38 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
     });
   };
 
+  /**
+   * Settle + claim in ONE transaction: [resolve, claim]. Instructions run in order within a tx, so
+   * claim sees the market already resolved. Only offered when the connected wallet holds a stake on
+   * the proven winning outcome — otherwise there's nothing to claim and plain settle() is used.
+   */
+  const settleAndClaim = () => {
+    if (!matchOver) {
+      toast.info("Match still in play", "Play the match to full time. You can settle once the final outcome is available.");
+      return;
+    }
+    const win = proof?.outcome ?? 0;
+    const wp = market?.pools?.[win] ?? 0;
+    const staked = myStakes ? myStakes[0] + myStakes[1] + myStakes[2] : 0;
+    // Mirrors on-chain claim(): winner splits the whole pool pro-rata.
+    const payout = wp > 0 ? ((myStakes?.[win] ?? 0) * (market?.total ?? 0)) / wp : staked;
+    act("settle + claim in one transaction", async () => {
+      if (!program || !publicKey || !marketPda) throw new Error("connect a wallet");
+      if (!proof) throw new Error("no captured proof bundled for this fixture");
+      const p = revive(proof.payload);
+      const ds = dailyScoresPda(Number(p.fixtureSummary.updateStats.minTimestamp.toString()));
+      const cuIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
+      const claimIx = await program.methods.claim()
+        .accounts({ market: marketPda, position: positionPdaFor(marketPda, publicKey), owner: publicKey }).instruction();
+      return program.methods.resolve(proof.outcome, p)
+        .accounts({ market: marketPda, dailyScoresMerkleRoots: ds, txoracleProgram: TXORACLE, payer: publicKey })
+        .preInstructions([cuIx]).postInstructions([claimIx]).rpc();
+    }, { kind: "claim", amount: payout }, (sig) => {
+      setReceipt({ payout, staked, sig, win: true, void: false, ts: Date.now(), outcome: win });
+      toast.win(`You won ${payout.toFixed(3)} SOL!`, "Settled and claimed in one transaction");
+    });
+  };
+
   const cancel = (outcome: number) => {
     const amt = myStakes?.[outcome] ?? 0;
     act(`cancel ${OUTCOME_LABELS[outcome]} bet`, async () => {
@@ -465,6 +518,11 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
   const cp = claimPayout();
   const canClaim = !!market?.resolved && !claimed && !!myStakes && (cp.void ? myStakes.some((x) => x > 0) : (!!market && myStakes[market.outcome] > 0));
   const lostBet = !!market?.resolved && !claimed && !!myStakes && myStakes.some((x) => x > 0) && !canClaim;
+  // Unresolved market at full time where the wallet already backed the proven winner: one tap
+  // settles AND claims atomically. wp>0 always holds here (the wallet itself is on the winner).
+  const winStake = proof && myStakes ? (myStakes[proof.outcome] ?? 0) : 0;
+  const canSettleClaim = !!market && !market.resolved && matchOver && !!proof && winStake > 0;
+  const settleClaimPayout = canSettleClaim && market ? (winStake * market.total) / (market.pools[proof!.outcome] || 1) : 0;
   const selTeam = sel === 0 ? homeTeam : sel === 2 ? awayTeam : "";
   const railPnl = (() => {
     const sum = (k: string) => railRows.filter((r) => r.kind === k).reduce((s, r) => s + (r.amount ?? 0), 0);
@@ -758,7 +816,8 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
               <SealCheck weight="fill" size={15} /> Trustless settlement
             </div>
             {proof ? (
-              <div className="overflow-hidden rounded-xl border border-success/30 bg-success/[0.04]">
+              <button type="button" onClick={() => setInspecting(true)}
+                className="group block w-full overflow-hidden rounded-xl border border-success/30 bg-success/[0.04] text-left transition-colors hover:border-success/60">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-success/20 px-4 py-3">
                   <span className="font-display text-sm font-semibold">Proven full-time {proof.home}:{proof.away} → {proof.label}</span>
                   <Badge variant="success"><SealCheck weight="fill" size={13} /> Merkle-verified</Badge>
@@ -771,10 +830,11 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 border-t border-success/20 px-4 py-2 font-mono text-[10px] text-muted-foreground">
-                  <TreeStructure size={12} className="shrink-0" /><span className="break-all">root {proof.dailyScoresPda}</span>
+                <div className="flex items-center justify-between gap-2 border-t border-success/20 px-4 py-2 font-mono text-[10px] text-muted-foreground">
+                  <span className="inline-flex min-w-0 items-center gap-2"><TreeStructure size={12} className="shrink-0" /><span className="truncate">root {proof.dailyScoresPda}</span></span>
+                  <span className="inline-flex shrink-0 items-center gap-1 font-sans font-semibold text-success">Inspect proof <ArrowRight weight="bold" size={11} className="transition-transform group-hover:translate-x-0.5" /></span>
                 </div>
-              </div>
+              </button>
             ) : (
               <p className="text-sm text-muted-foreground">
                 {isReal ? "This live market settles once the match is final and its TxLINE score proof is available."
@@ -782,15 +842,24 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
               </p>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Button variant="success" disabled={busy || !publicKey || !proof || market?.resolved || !market} onClick={settle}>
-                <SealCheck weight="fill" size={16} /> Settle with proof (anyone can)
-              </Button>
+              {canSettleClaim ? (
+                <Button variant="success" disabled={busy} onClick={settleAndClaim}>
+                  <Trophy weight="fill" size={16} /> Settle &amp; claim ◎{settleClaimPayout.toFixed(3)}
+                </Button>
+              ) : (
+                <Button variant="success" disabled={busy || !publicKey || !proof || market?.resolved || !market} onClick={settle}>
+                  <SealCheck weight="fill" size={16} /> Settle with proof (anyone can)
+                </Button>
+              )}
               {market?.resolved && (
                 <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-success">
                   <CheckCircle weight="fill" size={16} /> Resolved → {OUTCOME_LABELS[market.outcome]} wins
                 </span>
               )}
             </div>
+            {canSettleClaim && (
+              <p className="mt-2 text-xs text-muted-foreground">One transaction proves the result and pays your winnings — no separate claim step.</p>
+            )}
             {/* say WHY settlement isn't available instead of a silently dead button */}
             {!market?.resolved && (
               <p className="mt-2 text-xs text-amber-500">
@@ -1035,13 +1104,79 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
         <Button className="mt-5 w-full" onClick={() => setNotice(null)}>Got it</Button>
       </Modal>
 
+      {/* simulation explainer - shown when landing on an already-settled sim */}
+      <Modal open={simInfo} onClose={() => setSimInfo(false)} size="2xl">
+        <div className="-m-6 overflow-hidden">
+          {/* illustrated header - sim-balls.png artwork under a brand scrim so it blends with the
+              dark modal and the light title/badge stay legible */}
+          <div className="relative h-28 overflow-hidden rounded-t-2xl">
+            <img src="/sim-balls.png" alt="" aria-hidden
+              className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/45 via-background/70 to-card" />
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card via-card/60 to-transparent" />
+            <div className="absolute inset-x-0 top-0 flex items-start justify-end p-3">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-black/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-300 backdrop-blur-sm">
+                <Flask weight="fill" size={11} /> Devnet · testing only
+              </span>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 px-6 pb-3">
+              <Sparkle weight="fill" size={22} className="text-primary" />
+              <span className="font-display text-xl font-bold">Simulation mode</span>
+            </div>
+          </div>
+
+          {/* body */}
+          <div className="px-6 pb-6 pt-4 text-sm text-muted-foreground">
+            <p>This match is a <b className="text-foreground">simulation</b>, and it has already been settled, so betting on it is closed. Here is what that means.</p>
+
+            {/* four notices, 2 per row on desktop */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div className="mb-1.5 flex items-center gap-2 font-semibold text-foreground"><SoccerBall weight="fill" size={17} className="text-primary" /> What it is for</div>
+                <p>Simulation mode lets you experience the full Txsports flow. You place a stake, watch the match play out, and see it settle. It is here so you can test the platform when there is no upcoming real match to bet on.</p>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div className="mb-1.5 flex items-center gap-2 font-semibold text-foreground"><SealCheck weight="fill" size={17} className="text-primary" /> Anyone can settle it</div>
+                <p>There is no admin and no oracle. When the match is over, any Txsports user can settle the market by submitting an on chain proof of the real result. The person who settles is just a regular bettor, not the platform.</p>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div className="mb-1.5 flex items-center gap-2 font-semibold text-foreground"><Lock weight="fill" size={17} className="text-primary" /> It settles once, then closes</div>
+                <p>The moment one user settles it, the result is locked in and betting closes for everyone. A simulation replays a match whose result is already known, so it can be settled only once. This keeps it fair and stops anyone winning on a result they can look up.</p>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div className="mb-1.5 flex items-center gap-2 font-semibold text-foreground"><Trophy weight="fill" size={17} className="text-primary" /> How payouts work</div>
+                <p>Once the result is locked in, the whole pool is shared between everyone who backed the winning outcome, in proportion to their stake. There is no house and no rake, so winners are paid by the losing side.</p>
+              </div>
+            </div>
+
+            {/* mainnet note, full width */}
+            <div className="mt-3 flex gap-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3.5">
+              <RocketLaunch weight="fill" size={18} className="mt-0.5 shrink-0 text-amber-400" />
+              <p><b className="text-foreground">Testing only, not on Mainnet.</b> Simulation mode lets you try Txsports risk free on Solana Devnet. When Txsports launches on Mainnet, simulation mode is removed completely, and you will bet only on real, upcoming matches with live odds.</p>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <Button asChild className="flex-1"><a href="#/app">Find a match to bet on <ArrowRight weight="bold" size={16} /></a></Button>
+              <Button variant="outline" className="flex-1" onClick={() => setSimInfo(false)}>Got it</Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
       {/* claim receipt - ticket style */}
       <Modal open={!!receipt} onClose={() => setReceipt(null)}>
         {receipt && (
           <div className="-m-6 overflow-hidden">
             {/* header */}
-            <div className={"px-6 pb-5 pt-6 " + (receipt.win && receipt.payout > receipt.staked ? "bg-success/10" : !receipt.win && !receipt.void && receipt.payout <= 0 ? "bg-danger/10" : "bg-secondary/40")}>
-              <div className="flex items-center gap-3">
+            <div className={"relative overflow-hidden px-6 pb-5 pt-6 " + (receipt.win && receipt.payout > receipt.staked ? "bg-success/10" : !receipt.win && !receipt.void && receipt.payout <= 0 ? "bg-danger/10" : "bg-secondary/40")}>
+              {/* ball-in-net flourish, bleeding off the right edge and fading under the text */}
+              <img
+                src="/goal-net.png"
+                alt=""
+                aria-hidden
+                className="pointer-events-none absolute -right-3 top-1/2 h-[150%] w-auto -translate-y-1/2 object-contain opacity-70 [mask-image:linear-gradient(to_left,#000_45%,transparent_85%)]"
+              />
+              <div className="relative flex items-center gap-3">
                 <div className={"grid h-10 w-10 shrink-0 place-items-center rounded-full " + (!receipt.win && !receipt.void && receipt.payout <= 0 ? "bg-danger/15" : "bg-success/15")}>
                   {receipt.win ? <Trophy weight="fill" size={20} className="text-success" />
                     : !receipt.void && receipt.payout <= 0 ? <XCircle weight="fill" size={20} className="text-danger" />
@@ -1051,7 +1186,7 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
                   <div className="font-display text-lg font-bold leading-none">{receipt.void ? "Refunded" : receipt.win ? "You won!" : receipt.payout <= 0 ? "No win this time" : "Claim settled"}</div>
                   <div className="mt-1 text-[11px] text-muted-foreground">{new Date(receipt.ts).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</div>
                 </div>
-                <span className="ml-auto mr-6 inline-flex shrink-0 items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success"><CheckCircle weight="fill" size={11} /> Finalized</span>
+               
               </div>
             </div>
 
@@ -1070,6 +1205,17 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
                 )
               )}
               {!receipt.void && !receipt.win && <div className="mt-2 text-sm text-muted-foreground">Your pick didn't win this one.</div>}
+              {receipt.void && (
+                <div className="mx-auto mt-3 max-w-sm rounded-lg border border-border bg-secondary/50 px-3 py-2 text-left text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground">Why the refund?</span> The result was{" "}
+                  <span className="font-semibold text-foreground">
+                    {receipt.outcome === 1 ? "a Draw" : receipt.outcome === 0 ? homeTeam : awayTeam}
+                  </span>
+                  , but nobody had staked on {receipt.outcome === 1 ? "the Draw" : receipt.outcome === 0 ? homeTeam : awayTeam}.
+                  With no winning pool to split, the market is <span className="font-semibold text-foreground">void</span> and every
+                  stake is returned in full — you got your {receipt.staked.toFixed(3)} SOL back.
+                </div>
+              )}
             </div>
 
             {/* perforated divider with ticket notches */}
@@ -1114,6 +1260,8 @@ export function MarketDetail({ fixtureId }: { fixtureId: number }) {
           </div>
         )}
       </Modal>
+
+      {inspecting && proof && <ProofInspector proof={proof} onClose={() => setInspecting(false)} />}
     </section>
   );
 }

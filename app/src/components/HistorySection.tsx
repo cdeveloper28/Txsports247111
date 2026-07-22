@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import {
-  ArrowSquareOut, Wallet, ArrowClockwise, ChartLineUp, Ticket, Trophy, XCircle, SealCheck,
+  ArrowSquareOut, Wallet, ArrowClockwise, ChartLineUp, Ticket, Trophy, XCircle, SealCheck, TreeStructure,
 } from "@phosphor-icons/react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
@@ -11,6 +11,7 @@ import { OUTCOME_LABELS } from "../config";
 import { getHistory, remoteEnabled, type Prediction } from "../lib/history";
 import { useSolPrice } from "../lib/solPrice";
 import { PositionsPanel } from "./PositionsPanel";
+import { LazyProofInspector } from "./ProofInspector";
 
 const fmtTime = (ms?: number) =>
   ms ? new Date(ms).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
@@ -92,6 +93,7 @@ export function HistorySection() {
   const [rows, setRows] = useState<Prediction[]>([]);
   const [fixtures, setFixtures] = useState<Record<number, { home: string; away: string }>>({});
   const [loading, setLoading] = useState(false);
+  const [inspect, setInspect] = useState<number | null>(null);
   const solPrice = useSolPrice();
 
   useEffect(() => {
@@ -269,6 +271,13 @@ export function HistorySection() {
                       {r.amount != null && s !== 0 && (
                         <span className={"tnum text-sm font-bold " + (s > 0 ? "text-success" : "text-foreground")}>{s > 0 ? "+" : "−"}{(r.amount ?? 0).toFixed(3)}</span>
                       )}
+                      {/* settle/claim rows are post-settlement, so a proof exists to inspect */}
+                      {(r.kind === "claim" || r.kind === "settle") && (
+                        <button type="button" onClick={() => setInspect(r.fixtureId)} title="Inspect settlement proof"
+                          className="inline-flex items-center gap-1 rounded-md border border-success/30 bg-success/[0.06] px-1.5 py-1 text-[11px] font-semibold text-success transition hover:border-success/60">
+                          <TreeStructure weight="fill" size={12} /> proof
+                        </button>
+                      )}
                       <a className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground hover:text-primary"
                         href={`https://explorer.solana.com/tx/${r.sig}?cluster=devnet`} target="_blank" rel="noreferrer">
                         {r.sig.slice(0, 4)}… <ArrowSquareOut size={11} />
@@ -281,6 +290,7 @@ export function HistorySection() {
           </Card>
         </>
       )}
+      {inspect != null && <LazyProofInspector fixtureId={inspect} onClose={() => setInspect(null)} />}
     </section>
   );
 }
