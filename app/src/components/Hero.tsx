@@ -25,7 +25,7 @@ export function Hero() {
             </p>
             {/* px/vw sizes on purpose: rem-based type inflates with browser font-size settings and
                 wraps the lines; min() keeps each line on one line at every viewport */}
-            <h1 className="mt-5 font-display text-[22px] font-bold leading-[0.98] tracking-tight sm:text-[30px] lg:text-[min(78px,5.4vw)]">
+            <h1 className="mt-5 font-display text-[24px] font-bold leading-[0.98] tracking-tight sm:text-[34px] lg:text-[min(78px,5.4vw)]">
               <FlipWords words={["Trustless", "Permissionless"]} className="text-foreground" />
               <br />
               <span className="text-primary">Prediction Market.</span>
